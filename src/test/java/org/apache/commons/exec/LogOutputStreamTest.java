@@ -35,81 +35,83 @@ import org.junit.Test;
  */
 public class LogOutputStreamTest {
 
-    private final Executor exec = new DefaultExecutor();
-    private final File testDir = new File("src/test/scripts");
-    private OutputStream systemOut;
-    private final File environmentScript = TestUtil.resolveScriptForOS(testDir + "/environment");
-    private final File utf8CharacterScript = TestUtil.resolveScriptForOS(testDir + "/utf8Characters");
+	private final Executor exec = new DefaultExecutor();
+	private final File testDir = new File("src/test/scripts");
+	private OutputStream systemOut;
+	private final File environmentScript = TestUtil.resolveScriptForOS(testDir + "/environment");
+	private final File utf8CharacterScript = TestUtil.resolveScriptForOS(testDir + "/utf8Characters");
 
-    @BeforeClass
-    public static void classSetUp() {
-        // turn on debug mode and throw an exception for each encountered problem
-        System.setProperty("org.apache.commons.exec.lenient", "false");
-        System.setProperty("org.apache.commons.exec.debug", "true");
-    }
+	@BeforeClass
+	public static void classSetUp() {
+		// turn on debug mode and throw an exception for each encountered problem
+		System.setProperty("org.apache.commons.exec.lenient", "false");
+		System.setProperty("org.apache.commons.exec.debug", "true");
+	}
 
-    @Before
-    public void setUp() throws Exception {
+	@Before
+	public void setUp() throws Exception {
 
-    }
+	}
 
-    @After
-    public void tearDown() throws Exception {
-        if (this.systemOut != null) {
-            this.systemOut.close();
-        }
-    }
+	@After
+	public void tearDown() throws Exception {
+		if (this.systemOut != null) {
+			this.systemOut.close();
+		}
+	}
 
-    // ======================================================================
-    // Start of regression tests
-    // ======================================================================
+	// ======================================================================
+	// Start of regression tests
+	// ======================================================================
 
-    @Test
-    public void testStdout() throws Exception {
-        this.systemOut = new SystemLogOutputStream(1);
-        this.exec.setStreamHandler(new PumpStreamHandler(systemOut, systemOut));
+	@Test
+	public void testStdout() throws Exception {
+		this.systemOut = new SystemLogOutputStream(1);
+		this.exec.setStreamHandler(new PumpStreamHandler(systemOut, systemOut));
 
-        final CommandLine cl = new CommandLine(environmentScript);
-        final int exitValue = exec.execute(cl);
-        assertFalse(exec.isFailure(exitValue));
-    }
+		final CommandLine cl = new CommandLine(environmentScript);
+		final int exitValue = exec.execute(cl);
+		assertFalse(exec.isFailure(exitValue));
+	}
 
-    @Test
-    public void testStdoutWithUTF8Characters() throws Exception {
-        this.systemOut = new SystemLogOutputStream(1, Charset.forName("UTF-8"));
-        this.exec.setStreamHandler(new PumpStreamHandler(systemOut, systemOut));
+	@Test
+	public void testStdoutWithUTF8Characters() throws Exception {
+		this.systemOut = new SystemLogOutputStream(1, Charset.forName("UTF-8"));
+		this.exec.setStreamHandler(new PumpStreamHandler(systemOut, systemOut));
 
-        final CommandLine cl = new CommandLine(utf8CharacterScript);
-        final int exitValue = exec.execute(cl);
-        assertFalse(exec.isFailure(exitValue));
-        assertEquals("This string contains UTF-8 characters like the see no evil monkey \uD83D\uDE48 and the right single quotation mark \u2019", ((SystemLogOutputStream) systemOut).getOutput());
-    }
+		final CommandLine cl = new CommandLine(utf8CharacterScript);
+		final int exitValue = exec.execute(cl);
+		assertFalse(exec.isFailure(exitValue));
+		assertEquals(
+				"This string contains UTF-8 characters like the see no evil monkey \uD83D\uDE48 and the right single quotation mark \u2019",
+				((SystemLogOutputStream) systemOut).getOutput());
+	}
 
-    // ======================================================================
-    // Helper classes
-    // ======================================================================
+	// ======================================================================
+	// Helper classes
+	// ======================================================================
 
-    private class SystemLogOutputStream extends LogOutputStream {
+	private class SystemLogOutputStream extends LogOutputStream {
 
-        StringBuffer output = new StringBuffer();
+		StringBuffer output = new StringBuffer();
 
-        private SystemLogOutputStream(final int level) {
-            super(level);
-        }
+		private SystemLogOutputStream(final int level) {
+			super(level);
+		}
 
-        private SystemLogOutputStream(final int level, final Charset charset) {
-            super(level, charset);
-        }
+		private SystemLogOutputStream(final int level, final Charset charset) {
+			super(level, charset);
+		}
 
-        @Override
-        protected void processLine(final String line, final int level) {
-            System.out.println(line);
-            output.append(line);
-        }
+		@Override
+		protected void processLine(final String line, final int level) {
+			System.out.println(line);
+			output.append(line);
+		}
 
-        private String getOutput() {
-            return output.toString();
-        }
-    }
+		private String getOutput() {
+			return output.toString();
+		}
+	}
 
 }
